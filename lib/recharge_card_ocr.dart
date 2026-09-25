@@ -15,3 +15,6 @@ export 'src/image/card_image_preparer.dart';
 export 'src/image/prepared.dart';
 export 'src/port/text_recognizer_port.dart';
 export 'src/reader.dart';
+export 'src/mlkit/mlkit_digit_reader.dart';
+export 'src/widget/card_scan_geometry.dart';
+export 'src/widget/card_scan_overlay.dart';
