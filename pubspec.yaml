@@ -1,0 +1,29 @@
+name: recharge_card_ocr
+description: >-
+  Read recharge-card, voucher, meter and IMEI digit codes from photos: EXIF fix,
+  zoned crops, OCR digit clean-up, checksums and confidence gating.
+version: 0.1.0
+homepage: https://abdeldjalilchougui.biz/
+repository: https://github.com/AbeldjalilChougui/recharge_card_ocr
+issue_tracker: https://github.com/AbeldjalilChougui/recharge_card_ocr/issues
+topics:
+  - ocr
+  - camera
+  - text-recognition
+  - scanner
+  - mlkit
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_mlkit_text_recognition: ^0.16.0
+  image: ^4.5.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
