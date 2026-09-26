@@ -28,11 +28,14 @@ class DigitNormalizer {
   /// Creates a normaliser with the given look-alike table.
   const DigitNormalizer({this.confusions = defaultConfusions});
 
-  /// O→0, I/l/|→1, S→5, B→8, Z→2 and their lower-case forms where OCR
-  /// commonly produces them.
+  /// O/D/Q→0, I/l/|→1, S→5, B→8, Z→2 and their lower-case forms where OCR
+  /// commonly produces them. D and Q were added after ML Kit read a
+  /// partly scratched 0 as them in the benchmark (`example/tool/benchmark`).
   static const Map<String, String> defaultConfusions = {
     'O': '0',
     'o': '0',
+    'D': '0',
+    'Q': '0',
     'I': '1',
     'l': '1',
     '|': '1',

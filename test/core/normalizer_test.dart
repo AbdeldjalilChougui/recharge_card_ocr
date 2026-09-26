@@ -21,6 +21,19 @@ void main() {
       expect(n.normalizeToken('o0|1', allowed: digits)!.value, '0011');
     });
 
+    test('maps D->0 and Q->0 in digit context', () {
+      // Seen in ML Kit output on scratch-panel residue: "6Q71", "D199".
+      expect(n.normalizeToken('6Q71', allowed: digits)!.value, '6071');
+      expect(n.normalizeToken('D199', allowed: digits)!.value, '0199');
+      expect(n.normalizeToken('D199', allowed: digits)!.substitutions, 1);
+    });
+
+    test('D and Q do not turn words into numbers', () {
+      expect(n.normalizeToken('DA', allowed: digits), isNull);
+      expect(n.normalizeToken('500DA', allowed: digits), isNull);
+      expect(n.normalizeToken('DQ', allowed: digits), isNull);
+    });
+
     test('counts substitutions', () {
       expect(n.normalizeToken('9O1I', allowed: digits)!.substitutions, 2);
     });
