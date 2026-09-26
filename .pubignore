@@ -1,0 +1,19 @@
+# .pubignore replaces .gitignore for `dart pub publish`, so repeat its rules.
+.dart_tool/
+build/
+pubspec.lock
+.idea/
+*.iml
+.flutter-plugins*
+example/android/.gradle
+local.properties
+.packages
+
+# Accuracy benchmark: host tools, on-device runner and generated datasets
+# stay in the repository but out of the published archive.
+example/tool/
+example/integration_test/
+example/build/
+*.jpg
+*.jpeg
+__pycache__/
