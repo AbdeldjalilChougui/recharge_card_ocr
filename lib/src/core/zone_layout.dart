@@ -18,12 +18,13 @@ class ZoneLayout {
   /// The code zone reaches past the scratch panel (the panel sat at about
   /// 0.29..0.45 of the height) so a card held a few degrees off, or framed
   /// a little off-centre, does not lose its first or last digits. Text that
-  /// the wider zone picks up is filtered out by the `DigitCodeSpec`.
+  /// the wider zone picks up is filtered out by the `DigitCodeSpec`. The
+  /// serial zone has the same kind of margin.
   static const ZoneLayout rechargeCard = ZoneLayout(
     cardAspectRatio: 1.7,
     zones: {
       'code': NormRect(0.02, 0.22, 0.98, 0.52),
-      'serial': NormRect(0.05, 0.50, 0.95, 0.86),
+      'serial': NormRect(0.01, 0.47, 0.99, 0.90),
     },
   );
 
