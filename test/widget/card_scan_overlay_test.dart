@@ -37,10 +37,11 @@ void main() {
     test('maps zones into the card frame', () {
       final f = g.cardFrame(const Size(400, 800));
       final code = g.zoneRect(const Size(400, 800), 'code');
-      expect(code.left, closeTo(f.left + 0.08 * f.width, 1e-9));
-      expect(code.top, closeTo(f.top + 0.28 * f.height, 1e-9));
-      expect(code.right, closeTo(f.left + 0.92 * f.width, 1e-9));
-      expect(code.bottom, closeTo(f.top + 0.46 * f.height, 1e-9));
+      final z = _layout.zones['code']!;
+      expect(code.left, closeTo(f.left + z.left * f.width, 1e-9));
+      expect(code.top, closeTo(f.top + z.top * f.height, 1e-9));
+      expect(code.right, closeTo(f.left + z.right * f.width, 1e-9));
+      expect(code.bottom, closeTo(f.top + z.bottom * f.height, 1e-9));
       expect(g.zoneRects(const Size(400, 800)).keys, ['code', 'serial']);
     });
 
