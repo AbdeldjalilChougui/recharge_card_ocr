@@ -89,7 +89,7 @@ class WeightedMod10Checksum extends ChecksumValidator {
 
 /// A checksum defined by a callback, for issuer-specific schemes.
 class CustomChecksum extends ChecksumValidator {
-  /// Wraps [test] as a validator.
+  /// Wraps the `test` callback as a validator.
   const CustomChecksum(this._test, {this.name = 'custom'});
 
   final bool Function(String code) _test;
