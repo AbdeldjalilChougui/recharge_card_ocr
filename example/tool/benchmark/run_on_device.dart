@@ -45,16 +45,24 @@ Future<void> main(List<String> argv) async {
     exitCode = ok ? 0 : 1;
   } finally {
     await stage.delete(recursive: true);
-    if (!args.keepApp) {
-      final r = await Process.run(adb, [
-        '-s',
-        args.device,
-        'uninstall',
-        _appId,
-      ]);
-      stdout.writeln('[bench] uninstall $_appId: ${'${r.stdout}'.trim()}');
-    }
+    if (!args.keepApp) await _uninstall(adb, args.device);
   }
+}
+
+/// Removes the example app unless `flutter test` already did.
+Future<void> _uninstall(String adb, String device) async {
+  final list = await Process.run(adb, [
+    '-s',
+    device,
+    'shell',
+    'pm list packages $_appId',
+  ]);
+  if (!'${list.stdout}'.contains('package:$_appId')) {
+    stdout.writeln('[bench] $_appId is not installed (already removed)');
+    return;
+  }
+  final r = await Process.run(adb, ['-s', device, 'uninstall', _appId]);
+  stdout.writeln('[bench] uninstall $_appId: ${'${r.stdout}'.trim()}');
 }
 
 class _Args {
