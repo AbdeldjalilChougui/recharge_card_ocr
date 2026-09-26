@@ -12,6 +12,7 @@ flutter run
 
 Set the `DigitCodeSpec`s in `lib/main.dart` to the format of your cards.
 
-`tool/benchmark/` measures recognition accuracy with real ML Kit on a
-device or emulator, on synthetic cards or on your own card photos. See
-[tool/benchmark/README.md](tool/benchmark/README.md).
+The repository's `example/tool/benchmark/` folder (not included in the
+published package) measures recognition accuracy with real ML Kit on a
+device or emulator, on synthetic cards or on your own card photos. See its
+[README](https://github.com/AbeldjalilChougui/recharge_card_ocr/tree/main/example/tool/benchmark).
