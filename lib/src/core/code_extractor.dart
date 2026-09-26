@@ -154,12 +154,12 @@ class CodeExtractor {
     final tokens = <_Token?>[];
     if (line.elements.isNotEmpty) {
       for (final e in line.elements) {
-        for (final word in e.text.split(RegExp(r'\s+'))) {
+        for (final word in _words(e.text)) {
           tokens.add(_token(word, e.box, e.confidence ?? line.confidence));
         }
       }
     } else {
-      for (final word in line.text.split(RegExp(r'\s+'))) {
+      for (final word in _words(line.text)) {
         tokens.add(_token(word, line.box, line.confidence));
       }
     }
@@ -175,6 +175,23 @@ class CodeExtractor {
     }
     if (current.isNotEmpty) runs.add(current);
     return runs;
+  }
+
+  static final _space = RegExp(r'\s+');
+
+  /// Splits OCR text into words on whitespace, and also at a colon inside a
+  /// word: OCR often returns a label and its number as one word, such as
+  /// `série:422899086894`. The label part is then a word of its own, which
+  /// is not in digit context and still breaks the run.
+  static Iterable<String> _words(String text) sync* {
+    for (final word in text.split(_space)) {
+      final colon = word.indexOf(':');
+      if (colon <= 0 || colon == word.length - 1) {
+        yield word;
+      } else {
+        yield* word.split(':').where((p) => p.isNotEmpty);
+      }
+    }
   }
 
   _Token? _token(String word, OcrBox box, double? confidence) {

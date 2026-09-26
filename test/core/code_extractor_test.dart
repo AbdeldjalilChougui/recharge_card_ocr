@@ -105,6 +105,34 @@ void main() {
     });
   });
 
+  group('labels glued to the digits', () {
+    final serial = DigitCodeSpec(lengths: const {12});
+
+    test('reads digits joined to a label by a colon', () {
+      // ML Kit often drops the space after "série:" and returns one word.
+      final r = CodeExtractor(
+        serial,
+      ).read(fakeText([fakeLine('N° série:422899086894')]));
+      expect(r.code, '422899086894');
+      expect(r.needsReview, isFalse);
+    });
+
+    test('reads a grouped code whose first group is glued to the label', () {
+      final r = CodeExtractor(
+        serial,
+      ).read(fakeText([fakeLine('N° série:8496 0988 1439')]));
+      expect(r.code, '849609881439');
+      expect(r.best!.rawText, '8496 0988 1439');
+    });
+
+    test('a glued label still separates the digits around it', () {
+      final r = CodeExtractor(
+        DigitCodeSpec(lengths: const {8}),
+      ).extract(fakeText([fakeLine('1234 Lot:5678')]));
+      expect(r.map((c) => c.code), isNot(contains('12345678')));
+    });
+  });
+
   group('noise text', () {
     test('ignores prices, dates, phone numbers and labels', () {
       final r = CodeExtractor(card).read(
