@@ -192,20 +192,46 @@ class CodeExtractor {
   }
 
   static final _space = RegExp(r'\s+');
+  static final _labelThenDigits = RegExp(
+    r'^(\p{L}{3,})(\d[\d-]*)$',
+    unicode: true,
+  );
 
-  /// Splits OCR text into words on whitespace, and also at a colon inside a
-  /// word: OCR often returns a label and its number as one word, such as
-  /// `série:422899086894`. The label part is then a word of its own, which
-  /// is not in digit context and still breaks the run.
-  static Iterable<String> _words(String text) sync* {
+  /// Splits OCR text into words on whitespace, then splits a label off the
+  /// digits glued to it, because OCR often drops the space after a label:
+  ///
+  /// * at a colon inside a word, as in `série:422899086894`;
+  /// * after a leading word of three or more letters, as in
+  ///   `série340500065896`, when none of those letters is allowed in the
+  ///   code and at least one is not a digit look-alike.
+  ///
+  /// The label is then a word of its own, which is not in digit context and
+  /// still breaks the run.
+  Iterable<String> _words(String text) sync* {
     for (final word in text.split(_space)) {
       final colon = word.indexOf(':');
-      if (colon <= 0 || colon == word.length - 1) {
-        yield word;
-      } else {
-        yield* word.split(':').where((p) => p.isNotEmpty);
+      final parts = colon <= 0 || colon == word.length - 1
+          ? [word]
+          : word.split(':').where((p) => p.isNotEmpty);
+      for (final part in parts) {
+        final m = _labelThenDigits.firstMatch(part);
+        if (m != null && _isLabel(m.group(1)!)) {
+          yield m.group(1)!;
+          yield m.group(2)!;
+        } else {
+          yield part;
+        }
       }
     }
+  }
+
+  bool _isLabel(String letters) {
+    var nonLookAlike = false;
+    for (final ch in letters.split('')) {
+      if (spec.allowedCharacters.contains(ch)) return false;
+      if (!normalizer.confusions.containsKey(ch)) nonLookAlike = true;
+    }
+    return nonLookAlike;
   }
 
   _Token? _token(String word, OcrBox box, double? confidence) {

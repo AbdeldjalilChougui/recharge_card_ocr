@@ -166,6 +166,32 @@ void main() {
       expect(r.best!.rawText, '8496 0988 1439');
     });
 
+    test('reads digits glued to a word label without a colon', () {
+      // "N° série340500065896" and "N serie0921 1175 5368" from ML Kit.
+      expect(
+        CodeExtractor(
+          serial,
+        ).read(fakeText([fakeLine('N° série340500065896')])).code,
+        '340500065896',
+      );
+      expect(
+        CodeExtractor(
+          serial,
+        ).read(fakeText([fakeLine('N serie0921 1175 5368')])).code,
+        '092111755368',
+      );
+    });
+
+    test('short letter prefixes are not split off as labels', () {
+      // One or two letters in front of digits are more likely misread
+      // digits than a label, so the word is left alone (and rejected).
+      final r = CodeExtractor(
+        serial,
+      ).extract(fakeText([fakeLine('Lt20067 L83163827')]));
+      expect(r.map((c) => c.code), isNot(contains('20067')));
+      expect(r.map((c) => c.code), isNot(contains('83163827')));
+    });
+
     test('a glued label still separates the digits around it', () {
       final r = CodeExtractor(
         DigitCodeSpec(lengths: const {8}),
