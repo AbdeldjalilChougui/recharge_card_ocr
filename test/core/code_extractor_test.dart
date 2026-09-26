@@ -93,6 +93,31 @@ void main() {
       expect(CodeExtractor(card).read(text).code, '12345678901234');
     });
 
+    test('joins a tail that OCR split off on the same row', () {
+      // A tilted card: ML Kit returned the last group as its own line,
+      // slightly higher than the rest and to its right.
+      final spec = DigitCodeSpec(lengths: const {14});
+      final r = CodeExtractor(spec).read(
+        fakeText([
+          fakeLine('6886 7531 6202', top: 20),
+          fakeLine('85', top: 12, left: 300),
+        ]),
+      );
+      expect(r.code, '68867531620285');
+      expect(r.best!.joinedLines, isTrue);
+    });
+
+    test('does not join same-row lines that are far apart', () {
+      final spec = DigitCodeSpec(lengths: const {14});
+      final r = CodeExtractor(spec).extract(
+        fakeText([
+          fakeLine('6886 7531 6202', top: 20),
+          fakeLine('85', top: 20, left: 900),
+        ]),
+      );
+      expect(r.map((c) => c.code), isNot(contains('68867531620285')));
+    });
+
     test('does not join lines that are far apart', () {
       final r = CodeExtractor(card).read(
         fakeText([

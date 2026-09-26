@@ -109,6 +109,20 @@ class CodeExtractor {
       if (spec.acceptsLength(len)) keep(_build(seq, area, joined: true));
     }
 
+    // OCR sometimes returns the tail of a tilted or widely spaced code as a
+    // separate line on the same row, and sorts it before or after the rest.
+    for (var i = 0; i < lines.length; i++) {
+      for (var j = 0; j < lines.length; j++) {
+        if (i == j || !_sameRow(lines[i], lines[j])) continue;
+        final a = runsPerLine[i];
+        final b = runsPerLine[j];
+        if (a.isEmpty || b.isEmpty) continue;
+        final seq = [...a.last, ...b.first];
+        final len = seq.fold<int>(0, (s, t) => s + t.norm.value.length);
+        if (spec.acceptsLength(len)) keep(_build(seq, area, joined: true));
+      }
+    }
+
     final list = found.values.toList()
       ..sort((x, y) => y.score.compareTo(x.score));
     return list;
@@ -208,6 +222,19 @@ class CodeExtractor {
     final h = a.box.height > b.box.height ? a.box.height : b.box.height;
     final gap = b.box.top - a.box.bottom;
     return b.box.top > a.box.top + a.box.height / 2 && gap <= 1.5 * h;
+  }
+
+  /// Whether [b] continues [a] on the same row: it starts at or after the
+  /// end of [a], within two line heights, and the two overlap vertically by
+  /// at least half the smaller height.
+  bool _sameRow(OcrLine a, OcrLine b) {
+    final h = a.box.height > b.box.height ? a.box.height : b.box.height;
+    final minH = a.box.height < b.box.height ? a.box.height : b.box.height;
+    final gap = b.box.left - a.box.right;
+    if (gap < -0.25 * h || gap > 2 * h) return false;
+    final top = a.box.top > b.box.top ? a.box.top : b.box.top;
+    final bottom = a.box.bottom < b.box.bottom ? a.box.bottom : b.box.bottom;
+    return bottom - top >= 0.5 * minH;
   }
 
   CodeCandidate _build(List<_Token> seq, OcrBox? area, {required bool joined}) {
