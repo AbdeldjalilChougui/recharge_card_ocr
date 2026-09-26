@@ -22,12 +22,15 @@ enum ReviewReason {
 class ReviewPolicy {
   /// Creates a policy.
   const ReviewPolicy({
-    this.minConfidence = 0.7,
+    this.minConfidence = 0.8,
     this.ambiguityMargin = 0.1,
     this.assumedConfidence = 1.0,
   });
 
-  /// Codes below this confidence need review.
+  /// Codes below this confidence need review. The default, 0.8, was chosen
+  /// on the synthetic benchmark in `example/tool/benchmark`, where wrong
+  /// ML Kit reads that passed 0.7 scored between 0.70 and 0.83. Tune it on
+  /// photos of your own cards.
   final double minConfidence;
 
   /// A second valid code whose score is within this margin of the best one

@@ -200,7 +200,7 @@ class FakeRecognizer implements TextRecognizerPort {
 - The confidence value is a heuristic. It is the mean of the words' OCR
   confidences, minus 0.05 for each rewritten look-alike and 0.05 for a
   join across lines. The ranking weights are fixed. The defaults
-  (`minConfidence` 0.7, ambiguity margin 0.1) are starting points and need
+  (`minConfidence` 0.8, ambiguity margin 0.1) are starting points and need
   tuning on real scans.
 - When the engine reports no confidence, the code is treated as fully
   confident (`ReviewPolicy.assumedConfidence`, default 1.0). Lower this

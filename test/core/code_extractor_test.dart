@@ -323,6 +323,21 @@ void main() {
   });
 
   group('confidence gating', () {
+    test('the default threshold is 0.8', () {
+      // Measured on the synthetic benchmark: wrong ML Kit reads that were
+      // not flagged had confidences between 0.70 and 0.83.
+      expect(const ReviewPolicy().minConfidence, 0.8);
+      final r = CodeExtractor(
+        card,
+      ).read(fakeText([fakeLine('1234 5678 9012 34', confidence: 0.78)]));
+      expect(r.needsReview, isTrue);
+      expect(r.reasons, [ReviewReason.lowConfidence]);
+      final ok = CodeExtractor(
+        card,
+      ).read(fakeText([fakeLine('1234 5678 9012 34', confidence: 0.82)]));
+      expect(ok.needsReview, isFalse);
+    });
+
     test('low element confidence needs review', () {
       final r = CodeExtractor(
         card,
