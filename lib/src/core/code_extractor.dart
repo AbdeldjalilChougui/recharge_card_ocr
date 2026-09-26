@@ -224,17 +224,29 @@ class CodeExtractor {
     return b.box.top > a.box.top + a.box.height / 2 && gap <= 1.5 * h;
   }
 
-  /// Whether [b] continues [a] on the same row: it starts at or after the
-  /// end of [a], within two line heights, and the two overlap vertically by
-  /// at least half the smaller height.
+  /// Whether [b] continues [a] on the same row: the two overlap vertically
+  /// by at least half the smaller height, and [b] starts after the end of
+  /// [a] with a gap no wider than 1.5 times the widest space between the
+  /// words of [a] (or one character when [a] is a single word). A wider gap
+  /// suggests OCR lost characters there, and joining would give a wrong code
+  /// of an accepted length.
   bool _sameRow(OcrLine a, OcrLine b) {
-    final h = a.box.height > b.box.height ? a.box.height : b.box.height;
     final minH = a.box.height < b.box.height ? a.box.height : b.box.height;
-    final gap = b.box.left - a.box.right;
-    if (gap < -0.25 * h || gap > 2 * h) return false;
     final top = a.box.top > b.box.top ? a.box.top : b.box.top;
     final bottom = a.box.bottom < b.box.bottom ? a.box.bottom : b.box.bottom;
-    return bottom - top >= 0.5 * minH;
+    if (bottom - top < 0.5 * minH) return false;
+    final gap = b.box.left - a.box.right;
+    if (gap < -0.25 * minH) return false;
+    var space = 0.0;
+    for (var k = 0; k + 1 < a.elements.length; k++) {
+      final s = a.elements[k + 1].box.left - a.elements[k].box.right;
+      if (s > space) space = s;
+    }
+    if (space <= 0) {
+      final chars = a.text.replaceAll(_space, '').length;
+      space = chars == 0 ? 0 : a.box.width / chars;
+    }
+    return gap <= 1.5 * space;
   }
 
   CodeCandidate _build(List<_Token> seq, OcrBox? area, {required bool joined}) {

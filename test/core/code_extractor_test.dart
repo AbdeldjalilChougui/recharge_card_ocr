@@ -99,12 +99,28 @@ void main() {
       final spec = DigitCodeSpec(lengths: const {14});
       final r = CodeExtractor(spec).read(
         fakeText([
+          // fakeLine leaves 12 px between words; the tail follows after the
+          // same gap.
           fakeLine('6886 7531 6202', top: 20),
-          fakeLine('85', top: 12, left: 300),
+          fakeLine('85', top: 12, left: 276),
         ]),
       );
       expect(r.code, '68867531620285');
       expect(r.best!.joinedLines, isTrue);
+    });
+
+    test('does not join a same-row tail after a gap wider than a space', () {
+      // A wide gap means OCR probably lost characters between the lines;
+      // joining would produce a wrong code of an accepted length.
+      final spec = DigitCodeSpec(lengths: const {14});
+      final r = CodeExtractor(spec).read(
+        fakeText([
+          fakeLine('6886 7531 6202', top: 20),
+          fakeLine('85', top: 12, left: 304),
+        ]),
+      );
+      expect(r.code, isNot('68867531620285'));
+      expect(r.needsReview, isTrue);
     });
 
     test('does not join same-row lines that are far apart', () {
