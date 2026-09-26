@@ -11,3 +11,7 @@ flutter run
 ```
 
 Set the `DigitCodeSpec`s in `lib/main.dart` to the format of your cards.
+
+`tool/benchmark/` measures recognition accuracy with real ML Kit on a
+device or emulator, on synthetic cards or on your own card photos. See
+[tool/benchmark/README.md](tool/benchmark/README.md).

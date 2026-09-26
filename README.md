@@ -14,10 +14,11 @@ against your code format and flags doubtful reads for a person to confirm.
   prefix, allowed characters, and a check digit: Luhn, weighted mod-10
   (GS1 preset for EAN/UPC) or your own function. `DigitCodeSpec.imei()` is
   included.
-- **Digit clean-up** that only touches numbers: `O`→`0`, `I`/`l`→`1`,
-  `S`→`5`, `B`→`8`, `Z`→`2` are rewritten inside digit groups such as
-  `9O12`, never inside words such as `BOSS` or `PRICE`. Spaces and dashes
-  are removed, and a code split over two lines is joined.
+- **Digit clean-up** that only touches numbers: `O`/`D`/`Q`→`0`,
+  `I`/`l`→`1`, `S`→`5`, `B`→`8`, `Z`→`2` are rewritten inside digit groups
+  such as `9O12`, never inside words such as `BOSS` or `PRICE`. Spaces and
+  dashes are removed, labels glued to a number (`série:0123…`) are split
+  off, and a code split over two lines is joined.
 - **Ranking and gating**: candidates are ranked by how well they fit the
   spec, by the OCR's per-word confidence and by their position in the zone.
   The result has the best code, its alternatives, a confidence value and
@@ -185,15 +186,73 @@ class FakeRecognizer implements TextRecognizerPort {
 }
 ```
 
+## Measured accuracy
+
+> **These numbers come from synthetic images on an Android emulator.
+> Accuracy on real recharge cards has not been measured yet.** The cards
+> were rendered by this repository's generator
+> (`example/tool/benchmark/generate.py`) with made-up designs and random
+> codes, and they are laid out to match `ZoneLayout.rechargeCard`. Real
+> cards, cameras and scratching will give different results. Run the same
+> benchmark on your own card photos before relying on these numbers (see
+> `example/tool/benchmark/README.md`).
+
+Setup: 240 synthetic card photos, 20 per condition. Each card has a 14, 15
+or 16-digit code on a scratch panel, a 12-digit serial, and distracting
+text (a price, dates, a lot number, Arabic text). The full pipeline ran with
+the real ML Kit recogniser (`CardCodeReader` + `MlKitDigitReader`, default
+options) in a debug build on the Android emulator (Pixel image, API 37,
+x86_64). The code spec accepted lengths 14, 15 and 16, with no grouping or
+checksum. A "dangerous miss" is a wrong code that was **not** flagged
+`needsReview`. A "false alarm" is a correct code that was flagged.
+
+| code zone, version | exact match | char. error rate | dangerous misses | false alarms |
+|---|---:|---:|---:|---:|
+| before this tuning | 90.8% | 0.018 | 11 / 240 (4.6%) | 1 |
+| current defaults | 92.5% | 0.021 | 1 / 240 (0.4%) | 9 |
+
+Serial zone with the current defaults: 94.2% exact match (80.8% before
+tuning), 0 dangerous misses, 7 false alarms.
+
+Code zone by condition, current defaults. A mixed image counts toward each
+condition it combines, so some rows have more than 20 images:
+
+| condition | n | exact match | dangerous misses | flagged for review |
+|---|---:|---:|---:|---:|
+| clean | 20 | 95.0% | 0 | 5.0% |
+| perspective | 24 | 100.0% | 0 | 0.0% |
+| EXIF rotation 90/180/270 | 26 | 88.5% | 1 | 15.4% |
+| small angle (2 to 8 degrees) | 28 | 100.0% | 0 | 3.6% |
+| Gaussian blur | 23 | 100.0% | 0 | 4.3% |
+| motion blur | 25 | 96.0% | 0 | 8.0% |
+| JPEG quality 8 to 25 | 25 | 100.0% | 0 | 0.0% |
+| noise | 30 | 100.0% | 0 | 3.3% |
+| uneven light and glare | 23 | 100.0% | 0 | 4.3% |
+| scratch residue over digits | 28 | 50.0% | 0 | 75.0% |
+| low resolution (320 to 480 px wide) | 20 | 100.0% | 0 | 0.0% |
+| mixed (2 or 3 of the above) | 20 | 95.0% | 0 | 20.0% |
+
+Time for one photo (both zones) on the emulator: median 1.6 s, p95 2.1 s.
+This is an x86_64 emulator on a desktop CPU, not a phone.
+
+What the benchmark changed: splitting labels glued to digits
+(`série:4228…`), reading `D`/`Q` as `0` inside digit groups, joining a code
+tail that OCR put on a separate line, wider zones in
+`ZoneLayout.rechargeCard`, and a review threshold of 0.8 instead of 0.7.
+The zone margins and the threshold were chosen on this synthetic set, so
+they may be tuned to it. Most remaining errors are ML Kit misreading digits
+under scratch residue; those are mostly flagged for review, not fixed.
+
 ## Limitations
 
-- **On-device recognition quality has not been measured.** The tests use
-  synthetic images and hand-written OCR output, and ML Kit never runs in
-  them. How well codes are read depends on the device camera, lighting,
-  card print and ML Kit's model.
-- `ZoneLayout.rechargeCard` was tuned on the cards of apps used in
-  production. Card designs differ, so measure yours and pass your own
-  layout.
+- **Accuracy on real cards has not been measured.** The only on-device
+  measurement is the synthetic benchmark above, on an emulator. The unit
+  tests use hand-written OCR output, and ML Kit never runs in them. How well
+  codes are read depends on the device camera, lighting, card print and
+  ML Kit's model.
+- `ZoneLayout.rechargeCard` started from cards used in production apps,
+  and its margins were widened on the synthetic benchmark. Card designs
+  differ, so measure yours and pass your own layout.
 - No recharge-card formats for specific operators are included, because no
   public, verifiable specification for them was found. Describe your
   format with `DigitCodeSpec`.
