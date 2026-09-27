@@ -4,8 +4,8 @@ description: >-
   zoned crops, OCR digit clean-up, checksums and confidence gating.
 version: 0.1.0
 homepage: https://abdeldjalilchougui.biz/
-repository: https://github.com/AbeldjalilChougui/recharge_card_ocr
-issue_tracker: https://github.com/AbeldjalilChougui/recharge_card_ocr/issues
+repository: https://github.com/AbdeldjalilChougui/recharge_card_ocr
+issue_tracker: https://github.com/AbdeldjalilChougui/recharge_card_ocr/issues
 topics:
   - ocr
   - camera
